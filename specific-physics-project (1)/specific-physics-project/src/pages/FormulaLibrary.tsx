@@ -1,0 +1,13 @@
+import { ArrowRight, BookOpen, Search, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { chapters } from '../data/chapters';
+
+export function FormulaLibrary(){
+  const [query,setQuery]=useState('');const [chapterFilter,setChapterFilter]=useState('all');
+  const formulaRows=useMemo(()=>chapters.flatMap((chapter)=>chapter.formulas.map((formula)=>({...formula,chapterId:chapter.id,chapterTitle:chapter.title,chapterNumber:chapter.number}))).filter((formula)=>{
+    const matchesQuery=`${formula.name} ${formula.expression} ${formula.condition} ${formula.chapterTitle}`.toLowerCase().includes(query.trim().toLowerCase());
+    return matchesQuery&&(chapterFilter==='all'||formula.chapterId===chapterFilter);
+  }),[query,chapterFilter]);
+  return <div className="page-content formula-library-page"><div className="page-intro"><span className="eyebrow">REFERENCE DESK</span><h1>Formula library</h1><p>Find the equation, understand its assumptions, and jump into a related experiment.</p></div><div className="formula-toolbar"><div className="formula-search"><Search size={17}/><input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search by formula, variable, or concept…"/>{query&&<button onClick={()=>setQuery('')} aria-label="Clear search"><X size={15}/></button>}</div><select value={chapterFilter} onChange={(e)=>setChapterFilter(e.target.value)} aria-label="Filter formulas by chapter"><option value="all">All chapters</option>{chapters.map((c)=><option key={c.id} value={c.id}>{String(c.number).padStart(2,'0')} · {c.title}</option>)}</select></div><div className="formula-library-count"><span>{formulaRows.length} equations</span><span>Conditions included · SI conventions</span></div><div className="formula-library-list">{formulaRows.map((item,i)=><article className="library-formula-card" key={`${item.chapterId}-${item.name}`}><div className="library-formula-number">{String(i+1).padStart(2,'0')}</div><div className="library-formula-main"><div className="library-formula-top"><span>CHAPTER {String(item.chapterNumber).padStart(2,'0')} · {item.chapterTitle}</span><Link to={`/chapter/${item.chapterId}`}>Open chapter <ArrowRight size={13}/></Link></div><h2>{item.name}</h2><div className="library-expression">{item.expression}</div><p>{item.condition}</p></div></article>)}{formulaRows.length===0&&<div className="empty-state"><BookOpen size={25}/><h2>No matching formula</h2><p>Try another keyword or clear the chapter filter.</p></div>}</div><footer className="app-footer"><span>SPECIFIC PHYSICS</span><span>Formula library</span><span>Check conditions before using an equation.</span></footer></div>;
+}
