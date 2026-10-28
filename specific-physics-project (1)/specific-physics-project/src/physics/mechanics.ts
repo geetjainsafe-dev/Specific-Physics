@@ -218,7 +218,7 @@ export function springForceState(mass: number, springConstant: number, displacem
   const force = -k * x;
   const acceleration = force / m;
   const omega = Math.sqrt(k / m);
-  return { force, acceleration, omega, period: 2 * Math.PI / omega, velocity: initialVelocity, potentialEnergy: 0.5 * k * x * x, assumptions: 'Ideal linear spring; displacement is measured from equilibrium; massless spring; no damping; Hooke’s law applies within the elastic limit.' };
+  return { displacement: x, force, acceleration, omega, period: 2 * Math.PI / omega, velocity: initialVelocity, potentialEnergy: 0.5 * k * x * x, assumptions: 'Ideal linear spring; displacement is measured from equilibrium; massless spring; no damping; Hooke’s law applies within the elastic limit.' };
 }
 
 export function cyclistLeanAngle(speed: number, radius: number, g = G) {
