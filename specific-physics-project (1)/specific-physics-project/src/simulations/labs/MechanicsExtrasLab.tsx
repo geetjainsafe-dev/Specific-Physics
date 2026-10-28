@@ -15,7 +15,7 @@ const titles: Record<Kind, string> = {
   'train-banking': 'Train Banking',
   'airplane-banking': 'Airplane Banking',
 };
-function PhysicsSvg({kind,time,height,speed,angle,range,vx,vy,mass1,mass2,u1,u2,v1,v2,lean,bank,friction}: {kind:Kind;time:number;height:number;speed:number;angle:number;inclineAngle:number;range:number;vx:number;vy:number;mass1:number;mass2:number;u1:number;u2:number;v1:number;v2:number;lean:number;bank:number;friction:boolean}) {
+function PhysicsSvg({kind,time,height,speed,angle,inclineAngle,range,vx,vy,mass1,mass2,u1,u2,v1,v2,lean,bank,friction}: {kind:Kind;time:number;height:number;speed:number;angle:number;inclineAngle:number;range:number;vx:number;vy:number;mass1:number;mass2:number;u1:number;u2:number;v1:number;v2:number;lean:number;bank:number;friction:boolean}) {
  const progress=(time%5)/5;
  if(kind==='horizontal-projectile'||kind==='inclined-projectile'){
   const h=kind==='horizontal-projectile'?Math.max(0,height):0,theta=angle*Math.PI/180,g=9.81;
@@ -28,7 +28,7 @@ function PhysicsSvg({kind,time,height,speed,angle,range,vx,vy,mass1,mass2,u1,u2,
  }
  if(kind==='particle-collision'){
   const x1=progress<.5?80+progress*2*180:260+(progress-.5)*2*v1*7;
-  const x2=progress<.5?490-progress*2*180:310+(progress-.5)*2*v2*7;
+  const x2=progress<.5?490-progress*2*190:300+(progress-.5)*2*v2*7;
   return <svg viewBox="0 0 570 240" className="physics-svg"><rect x="25" y="50" width="520" height="130" rx="12" fill="#f1f5f9"/><path d="M35 115 H535" stroke="#94a3b8" strokeDasharray="5 5"/><circle cx={Math.max(50,Math.min(520,x1))} cy="115" r={Math.min(28,13+mass1*2)} fill="#0ea5e9" stroke="#075985" strokeWidth="2"/><circle cx={Math.max(50,Math.min(520,x2))} cy="115" r={Math.min(28,13+mass2*2)} fill="#fb923c" stroke="#9a3412" strokeWidth="2"/><text x={Math.max(50,Math.min(520,x1))} y="120" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">A</text><text x={Math.max(50,Math.min(520,x2))} y="120" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff">B</text><text x="285" y="28" textAnchor="middle" fontSize="12" fill="#475569">1D collision · ideal impulse model</text><text x="285" y="211" textAnchor="middle" fontSize="11" fill="#475569">Before impact: A → {u1} m/s · ← B {u2} m/s</text></svg>;
  }
  if(kind==='spring-force'){
