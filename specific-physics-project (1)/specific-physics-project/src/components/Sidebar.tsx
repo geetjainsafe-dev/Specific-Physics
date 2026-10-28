@@ -10,7 +10,7 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: Props) {
       {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={onClose} />}
       <aside className={`sidebar ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
         <NavLink to="/" className="brand" onClick={onClose}>
-          <span className="brand-mark"><FlaskConical size={19} strokeWidth={2.2} /></span>
+          <span className="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" width="26" height="26" fill="none"><path d="M14 5h12M17 5v10L8 30a4 4 0 0 0 3.4 6h17.2A4 4 0 0 0 32 30L23 15V5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 27h16" stroke="#0891b2" strokeWidth="2.5" strokeLinecap="round"/><circle cx="20" cy="22" r="2.3" fill="#f97316"/><path d="M20 1v4M2 20h4M34 20h4" stroke="#0891b2" strokeWidth="1.8" strokeLinecap="round"/></svg></span>
           {!collapsed && <span className="brand-copy"><strong>Specific Physics</strong><small>VIRTUAL LABORATORY</small></span>}
         </NavLink>
         <div className="sidebar-scroll">

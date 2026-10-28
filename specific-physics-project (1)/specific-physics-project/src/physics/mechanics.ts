@@ -180,3 +180,72 @@ export function torqueState(force: number, leverArm: number, angleDegrees: numbe
     direction: Math.abs(torque) < 1e-12 ? 'Zero' : torque > 0 ? 'Counter-clockwise' : 'Clockwise',
   };
 }
+
+
+export function horizontalProjectileState(height: number, speed: number, g = G) {
+  const h = Math.max(0, height);
+  const gravity = Math.max(1e-9, g);
+  const flightTime = Math.sqrt((2 * h) / gravity);
+  return { flightTime, range: Math.max(0, speed) * flightTime, vx: Math.max(0, speed), vyImpact: -gravity * flightTime, impactSpeed: Math.hypot(Math.max(0, speed), gravity * flightTime), maxHeight: h };
+}
+
+export function inclinedProjectileState(speed: number, launchAngleDegrees: number, inclineAngleDegrees: number, g = G) {
+  const u = Math.max(0, speed);
+  const alpha = degToRad(launchAngleDegrees);
+  const beta = degToRad(inclineAngleDegrees);
+  const denominator = Math.sin(alpha) - Math.cos(alpha) * Math.tan(beta);
+  if (g <= 0 || !Number.isFinite(denominator) || denominator <= 1e-10) {
+    return { valid: false, impactTime: Number.NaN, horizontalRange: Number.NaN, rangeAlongIncline: Number.NaN, impactX: Number.NaN, impactY: Number.NaN, reason: 'The launch direction must intersect the incline in forward time.' };
+  }
+  const impactTime = (2 * u * denominator) / g;
+  const impactX = u * Math.cos(alpha) * impactTime;
+  const impactY = u * Math.sin(alpha) * impactTime - 0.5 * g * impactTime * impactTime;
+  const rangeAlongIncline = impactX / Math.max(1e-10, Math.cos(beta));
+  return { valid: impactTime >= 0 && Number.isFinite(impactTime), impactTime, horizontalRange: impactX, rangeAlongIncline, impactX, impactY, reason: '' };
+}
+
+export function oneDimensionalCollision(m1: number, m2: number, u1: number, u2: number, restitution: number) {
+  const a = Math.max(1e-9, m1), b = Math.max(1e-9, m2), e = clamp(restitution, 0, 1);
+  const momentumBefore = a * u1 + b * u2;
+  const relativeApproachSpeed = u1 - u2;
+  const v1 = ((a - e * b) * u1 + (1 + e) * b * u2) / (a + b);
+  const v2 = ((b - e * a) * u2 + (1 + e) * a * u1) / (a + b);
+  return { v1, v2, momentumBefore, momentumAfter: a * v1 + b * v2, kineticEnergyBefore: 0.5 * a * u1 * u1 + 0.5 * b * u2 * u2, kineticEnergyAfter: 0.5 * a * v1 * v1 + 0.5 * b * v2 * v2, relativeApproachSpeed, relativeSeparationSpeed: e * relativeApproachSpeed };
+}
+
+export function springForceState(mass: number, springConstant: number, displacement: number, initialVelocity = 0, g = G) {
+  const m = Math.max(1e-9, mass), k = Math.max(1e-9, springConstant), x = displacement;
+  const force = -k * x;
+  const acceleration = force / m;
+  const omega = Math.sqrt(k / m);
+  return { displacement: x, force, acceleration, omega, period: 2 * Math.PI / omega, velocity: initialVelocity, potentialEnergy: 0.5 * k * x * x, assumptions: 'Ideal linear spring; displacement is measured from equilibrium; massless spring; no damping; Hooke’s law applies within the elastic limit.' };
+}
+
+export function cyclistLeanAngle(speed: number, radius: number, g = G) {
+  return Math.atan((Math.max(0, speed) ** 2) / (Math.max(1e-9, radius) * g)) * 180 / Math.PI;
+}
+
+export function trainBankingState(speed: number, radius: number, bankAngleDegrees: number, mass = 1000, g = G, frictionCoefficient = 0.35, frictionEnabled = false) {
+  const theta = degToRad(clamp(bankAngleDegrees, 0, 89));
+  const v = Math.max(0, speed), r = Math.max(1e-9, radius), m = Math.max(1e-9, mass);
+  const idealSpeed = Math.sqrt(r * g * Math.tan(theta));
+  const requiredCentripetal = m * v * v / r;
+  const signedFrictionRequired = (requiredCentripetal - m * g * Math.tan(theta)) * Math.cos(theta);
+  const frictionForce = frictionEnabled ? signedFrictionRequired : 0;
+  const normal = Math.max(0, (m * g - frictionForce * Math.sin(theta)) / Math.max(1e-9, Math.cos(theta)));
+  const inwardNormal = normal * Math.sin(theta);
+  const netInward = inwardNormal + frictionForce * Math.cos(theta);
+  const frictionAvailable = Math.max(0, frictionCoefficient) * normal;
+  const frictionSufficient = frictionEnabled
+    ? Math.abs(signedFrictionRequired) <= frictionAvailable + 1e-9
+    : Math.abs(requiredCentripetal - inwardNormal) <= Math.max(1e-6, requiredCentripetal * 1e-6);
+  return { normal, weight: m * g, inwardNormal, requiredCentripetal, idealSpeed, netInwardWithoutFriction: inwardNormal, netInward, frictionForce, frictionAvailable, frictionSufficient, acceleration: v * v / r };
+}
+
+export function airplaneBankingState(speed: number, bankAngleDegrees: number, mass = 1000, g = G) {
+  const v = Math.max(0, speed), phi = degToRad(clamp(bankAngleDegrees, 0, 89)), m = Math.max(1e-9, mass);
+  const lift = m * g / Math.max(1e-9, Math.cos(phi));
+  const horizontalLift = lift * Math.sin(phi);
+  const radius = Math.abs(Math.tan(phi)) > 1e-9 ? v * v / (g * Math.tan(phi)) : Infinity;
+  return { lift, verticalLift: lift * Math.cos(phi), horizontalLift, weight: m * g, radius, turnRate: Number.isFinite(radius) && radius > 0 ? v / radius : 0 };
+}

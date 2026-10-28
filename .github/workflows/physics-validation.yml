@@ -1,0 +1,30 @@
+name: Validate Specific Physics
+
+on:
+  push:
+    branches:
+      - main
+      - feat/physics-labs-branding-animation
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: specific-physics-project (1)/specific-physics-project
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+      - name: Build production bundle
+        run: npm run build

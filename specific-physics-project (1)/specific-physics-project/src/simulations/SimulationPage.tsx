@@ -7,6 +7,7 @@ import { FluidsLab } from './labs/FluidsLab';
 import { FrictionLab } from './labs/FrictionLab';
 import { GravitationLab } from './labs/GravitationLab';
 import { KineticTheoryLab } from './labs/KineticTheoryLab';
+import { AirplaneBankingLab, CyclistLeaningLab, HorizontalProjectileLab, InclinedProjectileLab, ParticleCollisionLab, SpringForceLab, TrainBankingLab } from './labs/MechanicsExtrasLab';
 import { ProjectileLab } from './labs/ProjectileLab';
 import { RelativeMotionLab } from './labs/RelativeMotionLab';
 import { RiverBoatLab } from './labs/RiverBoatLab';
@@ -42,6 +43,13 @@ const labComponents: Record<string, () => JSX.Element> = {
   thermodynamics: ThermodynamicsLab,
   'kinetic-theory': KineticTheoryLab,
   waves: WavesLab,
+  'horizontal-projectile': HorizontalProjectileLab,
+  'inclined-projectile': InclinedProjectileLab,
+  'particle-collision': ParticleCollisionLab,
+  'spring-force': SpringForceLab,
+  'cyclist-leaning': CyclistLeaningLab,
+  'train-banking': TrainBankingLab,
+  'airplane-banking': AirplaneBankingLab,
 };
 
 export function SimulationPage() {

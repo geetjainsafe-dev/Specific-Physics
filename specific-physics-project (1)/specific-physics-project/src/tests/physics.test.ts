@@ -19,6 +19,13 @@ import {
   riverBoatState,
   bankedRoadState,
   torqueState,
+  horizontalProjectileState,
+  inclinedProjectileState,
+  oneDimensionalCollision,
+  springForceState,
+  cyclistLeanAngle,
+  trainBankingState,
+  airplaneBankingState,
 } from '../physics';
 
 const closeTo = (actual: number, expected: number, digits = 5) => expect(actual).toBeCloseTo(expected, digits);
@@ -132,5 +139,41 @@ describe('relative motion, river crossing and turning', () => {
     closeTo(torqueState(10, 2, 90).torque, 20);
     closeTo(torqueState(10, 2, -90).torque, -20);
     closeTo(torqueState(10, 2, 0).torque, 0);
+  });
+});
+
+
+describe('new mechanics lab models', () => {
+  it('calculates horizontal projectile flight time and range', () => {
+    const state = horizontalProjectileState(19.62, 10);
+    closeTo(state.flightTime, 2);
+    closeTo(state.range, 20);
+    closeTo(state.impactSpeed, Math.sqrt(10 ** 2 + 19.62 ** 2));
+  });
+  it('finds impact on a lower incline and rejects invalid launch direction', () => {
+    const valid = inclinedProjectileState(20, 50, 20, 10);
+    expect(valid.valid).toBe(true);
+    expect(valid.impactTime).toBeGreaterThan(0);
+    expect(valid.rangeAlongIncline).toBeGreaterThan(0);
+    expect(inclinedProjectileState(20, 10, 20, 10).valid).toBe(false);
+  });
+  it('conserves momentum for a one-dimensional collision', () => {
+    const state = oneDimensionalCollision(2, 3, 5, -2, 0.8);
+    closeTo(state.momentumBefore, state.momentumAfter);
+    expect(state.kineticEnergyAfter).toBeLessThan(state.kineticEnergyBefore);
+  });
+  it('models Hooke restoring force opposite displacement', () => {
+    const state = springForceState(2, 20, 0.5);
+    closeTo(state.force, -10);
+    closeTo(state.acceleration, -5);
+    expect(state.assumptions).toContain('Hooke');
+  });
+  it('increases cyclist lean with speed and gives consistent turn-force components', () => {
+    expect(cyclistLeanAngle(20, 30)).toBeGreaterThan(cyclistLeanAngle(10, 30));
+    const train = trainBankingState(20, 100, 30);
+    closeTo(train.normal * Math.cos(Math.PI / 6), train.weight);
+    const plane = airplaneBankingState(50, 30, 1000);
+    closeTo(plane.verticalLift, plane.weight);
+    closeTo(plane.radius, 50 ** 2 / (9.81 * Math.tan(Math.PI / 6)));
   });
 });
