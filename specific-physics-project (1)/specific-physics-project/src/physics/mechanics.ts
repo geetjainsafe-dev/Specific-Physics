@@ -225,13 +225,21 @@ export function cyclistLeanAngle(speed: number, radius: number, g = G) {
   return Math.atan((Math.max(0, speed) ** 2) / (Math.max(1e-9, radius) * g)) * 180 / Math.PI;
 }
 
-export function trainBankingState(speed: number, radius: number, bankAngleDegrees: number, mass = 1000, g = G) {
+export function trainBankingState(speed: number, radius: number, bankAngleDegrees: number, mass = 1000, g = G, frictionCoefficient = 0.35, frictionEnabled = false) {
   const theta = degToRad(clamp(bankAngleDegrees, 0, 89));
   const v = Math.max(0, speed), r = Math.max(1e-9, radius), m = Math.max(1e-9, mass);
-  const normal = m * g / Math.max(1e-9, Math.cos(theta));
-  const inwardNormal = normal * Math.sin(theta);
+  const idealSpeed = Math.sqrt(r * g * Math.tan(theta));
   const requiredCentripetal = m * v * v / r;
-  return { normal, weight: m * g, inwardNormal, requiredCentripetal, idealSpeed: Math.sqrt(r * g * Math.tan(theta)), netInwardWithoutFriction: inwardNormal, acceleration: v * v / r };
+  const signedFrictionRequired = (requiredCentripetal - m * g * Math.tan(theta)) * Math.cos(theta);
+  const frictionForce = frictionEnabled ? signedFrictionRequired : 0;
+  const normal = Math.max(0, (m * g - frictionForce * Math.sin(theta)) / Math.max(1e-9, Math.cos(theta)));
+  const inwardNormal = normal * Math.sin(theta);
+  const netInward = inwardNormal + frictionForce * Math.cos(theta);
+  const frictionAvailable = Math.max(0, frictionCoefficient) * normal;
+  const frictionSufficient = frictionEnabled
+    ? Math.abs(signedFrictionRequired) <= frictionAvailable + 1e-9
+    : Math.abs(requiredCentripetal - inwardNormal) <= Math.max(1e-6, requiredCentripetal * 1e-6);
+  return { normal, weight: m * g, inwardNormal, requiredCentripetal, idealSpeed, netInwardWithoutFriction: inwardNormal, netInward, frictionForce, frictionAvailable, frictionSufficient, acceleration: v * v / r };
 }
 
 export function airplaneBankingState(speed: number, bankAngleDegrees: number, mass = 1000, g = G) {
